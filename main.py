@@ -51,4 +51,4 @@ def index(config):
 
 
 # Spusteni VYVOJOVEHO serveru
-app.run(host='127.0.0.1', port=8080, debug=True, ssl_context='adhoc')
+app.run(host='127.0.0.1', port=8080, debug=True)
