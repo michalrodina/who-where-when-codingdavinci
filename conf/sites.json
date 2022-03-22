@@ -1,22 +1,31 @@
 {
     "general": {
+        "site": {
+            "title": "Plzeňský kraj"
+        },
         "map": {
             "center_lat":   49.637400,
             "center_lon":   13.612100,
             "zoom":         10
         }
     },
-    "praha": {
-        "map": {
-            "center_lat":   50.083333,
-            "center_lon":   14.416667,
-            "zoom":         15
-        }
-    },
     "plzen": {
+        "site": {
+            "title": "Plzeň"
+        },
         "map": {
             "center_lat":   49.741389,
             "center_lon":   13.382500,
+            "zoom":         15
+        }
+    },
+    "klatovy": {
+        "site": {
+            "title": "Klatovy"
+        },
+        "map": {
+            "center_lat":   49.395278,
+            "center_lon":   13.29500,
             "zoom":         15
         }
     }

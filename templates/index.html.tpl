@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>{{site.title}} | Kdo? Kdy? Kde?</title>
     <script type="text/javascript" src="js/OpenLayers/OpenLayers.js"></script>
     <link type="text/css" rel="stylesheet" href="styles/main.css" />
 </head>
@@ -18,7 +18,7 @@ var fromProjection = new OpenLayers.Projection("EPSG:4326");   // Transform from
 var toProjection   = new OpenLayers.Projection("EPSG:900913"); // to Spherical Mercator Projection
 
 map.addLayer(new OpenLayers.Layer.OSM());
-map.setCenter(new OpenLayers.LonLat({{center_lon}}, {{center_lat}}).transform( fromProjection, toProjection), {{zoom}})
+map.setCenter(new OpenLayers.LonLat({{map.center_lon}}, {{map.center_lat}}).transform( fromProjection, toProjection), {{map.zoom}})
 </script>
 </body>
 </html>

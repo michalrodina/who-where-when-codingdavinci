@@ -12,7 +12,8 @@ import json
 app = Flask(__name__, template_folder='./templates/')
 app.register_blueprint(data_api)
 
-config_json = open('conf/sites.json')
+# Konfigurace pro jednotlive kiosky ulozena v JSON
+config_json = open('conf/sites.json', encoding='utf8')
 configs = json.load(config_json)
 
 
@@ -39,16 +40,13 @@ def file_css(path):
 # Vychozi stranka aplikace
 @app.route('/', defaults={'config': 'general'})
 @app.route('/<config>')
-
 def index(config):
+    # vyhledat konifguraci kiosku, pokud neexistuje pouzit general
     if config not in configs.keys():
         config = 'general'
 
-    center_lat = configs[config]['map']['center_lat']
-    center_lon = configs[config]['map']['center_lon']
-    zoom = configs[config]['map']['zoom']
-
-    return render_template('index.html.tpl', center_lat=center_lat, center_lon=center_lon, zoom=zoom)
+    # vykreslit sablonu s nactenou konfiguraci (**operator vlozi obsah dictu jako promenne)
+    return render_template('index.html.tpl', **configs[config])
     pass
 
 
