@@ -36,13 +36,12 @@ class DataSource:
         self.wiki.setQuery("""
             SELECT DISTINCT ?locationLabel ?regionLabel ?geoloc WHERE {
                 ?location wdt:P17 wd:Q213.
-                ?location wdt:P31 ?settlement .
                 ?location wdt:P131 ?region .
-                #?settlement wdt:P279 wd:Q5153359 .
-                { {?settlement wdt:P279 wd:Q5153359} UNION {?location wdt:P31 wd:Q5153359}} .
-                ?location rdfs:label ?cs_label .
+                ?location wdt:P31 wd:Q5153359 .
                 ?location wdt:P625 ?geoloc .
-                FILTER (lang(?cs_label) = "cs") .
+                # cs_label pro poteby pripadne filtrace v dotazu
+                #?location rdfs:label ?cs_label .
+                #FILTER (lang(?cs_label) = "cs") .
                 #FILTER (regex((?cs_label), "%s")).
 
                 SERVICE wikibase:label { bd:serviceParam wikibase:language "cs". }
