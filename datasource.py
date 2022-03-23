@@ -29,16 +29,17 @@ class DataSource:
         geoloc = self.get_geoloc(False)
         self.geoloc = {}
         for g in geoloc['results']['bindings']:
-            self.geoloc[g['locationLabel']['value']] = g['geoloc']['value']
-
+            self.geoloc[g['locationLabel']['value']+'--'+g['regionLabel']['value'].replace('okres ', '')] = g['geoloc']['value']
         pass
 
     def get_geoloc(self, city_label):
         self.wiki.setQuery("""
-            SELECT DISTINCT ?locationLabel ?geoloc WHERE {
+            SELECT DISTINCT ?locationLabel ?regionLabel ?geoloc WHERE {
                 ?location wdt:P17 wd:Q213.
                 ?location wdt:P31 ?settlement .
-                ?settlement wdt:P279 wd:Q5153359 .
+                ?location wdt:P131 ?region .
+                #?settlement wdt:P279 wd:Q5153359 .
+                { {?settlement wdt:P279 wd:Q5153359} UNION {?location wdt:P31 wd:Q5153359}} .
                 ?location rdfs:label ?cs_label .
                 ?location wdt:P625 ?geoloc .
                 FILTER (lang(?cs_label) = "cs") .
@@ -101,10 +102,12 @@ class DataSource:
 
             try:
                 item['birthPlace'] = person['birthPlace']['value']
-                city = person['birthPlace']['value'].split('--')
-                if city[0] in self.geoloc:
+                #city = person['birthPlace']['value'].split('--')
+                #if city[0] in self.geoloc:
+                if person['birthPlace']['value'] in self.geoloc:
                     # print(city[0], city[1], self.geoloc[city[0]])
-                    point = re.findall("\d+\.\d+",  self.geoloc[city[0]])
+                    ##point = re.findall("\d+\.\d+",  self.geoloc[city])
+                    point = re.findall("\d+\.\d+",  self.geoloc[person['birthPlace']['value']])
                     print(point)
                     item['marker'] = point
                 else:
