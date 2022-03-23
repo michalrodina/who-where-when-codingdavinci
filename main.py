@@ -46,7 +46,7 @@ def index(config):
         config = 'general'
 
     # vykreslit sablonu s nactenou konfiguraci (**operator vlozi obsah dictu jako promenne)
-    return render_template('index.html.tpl', **configs[config])
+    return render_template('index.html.tpl', **configs[config], markers=[])
     pass
 
 

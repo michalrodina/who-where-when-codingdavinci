@@ -15,6 +15,7 @@
 
 from flask import Blueprint, render_template
 from datasource import DataSource
+import json
 
 # Registrace modulu jako Flask Blueprint
 data_api = Blueprint('data_api', __name__, template_folder='./templates/')
@@ -28,5 +29,5 @@ sparql = DataSource()
 def data_markers():
     data = sparql.load_data(False)
 
-    return render_template('data_markers.json.tpl', data=data)
+    return render_template('data_markers.json.tpl', data=json.dumps(data))
     pass
