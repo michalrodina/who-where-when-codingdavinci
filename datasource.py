@@ -76,10 +76,10 @@ class DataSource:
             ?s <http://schema.org/name> ?name .
             ?s <http://schema.org/birthDate> ?birthDate .
             ?s <http://schema.org/birthPlace> ?birthPlace .
-            ?s <http://schema.org/deathDate> ?deathDate
+            OPTIONAL {?s <http://schema.org/deathDate> ?deathDate} .
             OPTIONAL {?s <http://schema.org/deathPlace> ?deathPlace} .
             ?s <http://purl.org/dc/terms/subjects> ?subj .
-            FILTER regex(?subj, "keram", "i")
+            #FILTER regex(?subj, "keram", "i")
           }
         """)
 
