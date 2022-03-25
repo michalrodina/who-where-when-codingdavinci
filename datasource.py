@@ -1,14 +1,18 @@
 # # DataSource trida
 # Tato trida bude poskytovat kompletni rozhrani mezi mistnimi endpointy a zdrojovou databazi plzenske knihovny
 
+
 from SPARQLWrapper import SPARQLWrapper, JSON
+import json
+from collections import defaultdict
 import re
 
 # # TODO:
-# - Vyzkoumat jaky modul pouzit pro SPARQL
-# - Implementovat konektor
 # - Navrhnout metody pro ziskavani dat
-# - Implementovat metody
+# - Implementovat metody:
+# - - nacist vechny polozky pro mapu (moznost poslat do metody ruzne filtry) - rozpracovano (load_items)
+# - - nacist jednu polozky pro zobrazni detailu (filtr podle id) - rozpracovano (load_item)
+# - - nacist obory pusobnosti - rozpracovano (load_subjects)
 
 class DataSource:
 
@@ -25,14 +29,12 @@ class DataSource:
         self.wiki = SPARQLWrapper('https://query.wikidata.org/sparql')
         self.wiki.setReturnFormat(JSON)
 
-        # Natahnout geolokacni data pro obce CR z Wikidat
-        geoloc = self.get_geoloc(False)
-        self.geoloc = {}
-        for g in geoloc['results']['bindings']:
-            self.geoloc[g['locationLabel']['value']+'--'+g['regionLabel']['value'].replace('okres ', '')] = g['geoloc']['value']
-        pass
+        self.load_geoloc()
 
-    def get_geoloc(self, city_label):
+
+    def load_geoloc(self, city_label=""):
+        self.geoloc = {}
+
         self.wiki.setQuery("""
             SELECT DISTINCT ?locationLabel ?regionLabel ?geoloc WHERE {
                 ?location wdt:P17 wd:Q213.
@@ -49,45 +51,86 @@ class DataSource:
 
         """ % city_label)
 
-        ret = self.wiki.queryAndConvert()
+        try:
+            data = self.wiki.queryAndConvert()
 
-        return ret
+            for g in data['results']['bindings']:
+                self.geoloc[g['locationLabel']['value'] + '--' + g['regionLabel']['value'].replace('okres ', '')] = \
+                    g['geoloc']['value']
+        except:
+            print('Nepodařilo se načíst wikidata zdroj geolokace. Načítám lokální JSON zdroj.')
+            fjson = open('assets/wikidata_geoloc.json', encoding='utf8')
+            data = json.load(fjson) # nacist z JSONu
+            for g in data:
+                self.geoloc[g['locationLabel'] + '--' + g['regionLabel'].replace('okres ', '')] = \
+                    g['geoloc']
+
+        # Natahnout geolokacni data pro obce CR z Wikidat
+
+        pass
 
     # Gettery:
     ##
-    # Load data metoda
+    # Nacist obory pusobnosi
     #
-    # Dummy getter
-    def load_data(self, data_filter):
-        # zpracuj data_filter
-
-        # nacti data
+    # TODO: Je v tom slusnej bordel :/
+    def load_subjects(self):
         self.reos.setQuery("""
-        SELECT 
-            ?s 
-            ?name 
-            ?birthDate
-            ?birthPlace 
-            ?deathDate
-            ?deathPlace 
-            ?subj
-        WHERE
-          {
-            ?s <http://schema.org/name> ?name .
-            ?s <http://schema.org/birthDate> ?birthDate .
-            ?s <http://schema.org/birthPlace> ?birthPlace .
-            OPTIONAL {?s <http://schema.org/deathDate> ?deathDate} .
-            OPTIONAL {?s <http://schema.org/deathPlace> ?deathPlace} .
-            ?s <http://purl.org/dc/terms/subjects> ?subj .
-            #FILTER regex(?subj, "keram", "i")
-          }
+            SELECT DISTINCT ?subj
+            WHERE {
+                ?s <http://purl.org/dc/terms/subjects> ?subj . 
+            }
+        
         """)
 
         data = self.reos.queryAndConvert()
-        print(data)
+
+        ret = []
+        for d in data['results']['bindings']:
+            ret.append(d['subj']['value'])
+
+        return ret
+
+    ##
+    # Load items metoda
+    #
+    # Nacita vsechny polozky z datasource s vybranou mnozinou vlastnosti
+    def load_items(self, data_filter):
+        # zpracuj data_filter
+
+        # nacti data
+        self.reos.setQuery("""       
+            SELECT
+                ?s 
+                ?name 
+                ?birthDate
+                ?birthPlace 
+                ?deathDate
+                ?deathPlace
+                (GROUP_CONCAT(?subj) AS ?subjects)
+            WHERE
+            {
+                ?s <http://schema.org/name> ?name .
+                ?s <http://schema.org/birthDate> ?birthDate .
+                ?s <http://schema.org/birthPlace> ?birthPlace .
+                OPTIONAL {?s <http://schema.org/deathDate> ?deathDate} .
+                OPTIONAL {?s <http://schema.org/deathPlace> ?deathPlace} .
+                ?s <http://purl.org/dc/terms/subjects> ?subj .
+                #FILTER regex(?subj, "keram", "i")
+            }
+            GROUP BY ?s ?name ?birthPlace ?birthDate ?deathDate ?deathPlace
+        """)
+
+        data = self.reos.queryAndConvert()
+
         ret = []
         for person in data['results']['bindings']:
             item = {}
+            try:
+                item['s'] = person['s']['value']
+            except KeyError:
+                item['s'] = 'Chyba'
+
             try:
                 item['name'] = person['name']['value']
             except KeyError:
@@ -107,8 +150,7 @@ class DataSource:
                     # print(city[0], city[1], self.geoloc[city[0]])
                     ##point = re.findall("\d+\.\d+",  self.geoloc[city])
                     point = re.findall("\d+\.\d+",  self.geoloc[person['birthPlace']['value']])
-                    print(point)
-                    item['marker'] = point
+                    item['marker'] = (point[0], point[1])
                 else:
                     # print(city[0], city[1], 'Nenalezeno')
                     item['marker'] = False
@@ -126,9 +168,52 @@ class DataSource:
             except KeyError:
                 item['deathPlace'] = '?'
 
+            try:
+                item['subjects'] = person['subjects']['value']
+            except KeyError:
+                item['subjects'] = '?'
+
             ret.append(item)
 
         return ret
-        # vrat data
-        return [1, 2, 3, 4]
         pass
+
+    ##
+    # Nacist jednu osobu dle <https://svkpk.cz/resources/reos/{subject}>
+    #
+    # Data budou zobrazena v detailnim nahledu konkretni osoby
+    #
+    # @TODO: Nacist vsechny vlastnosti
+    # @TODO: Zkusit dohledat fotku z wikidata/wikimedia?
+    def load_item(self, subject):
+
+        self.reos.setQuery("""
+            SELECT
+                ?s 
+                ?name 
+                ?birthDate
+                ?birthPlace 
+                ?deathDate
+                ?deathPlace
+                (GROUP_CONCAT(?subj) AS ?subjects)
+            WHERE
+              {
+                ?s <http://schema.org/name> ?name .
+                ?s <http://schema.org/birthDate> ?birthDate .
+                ?s <http://schema.org/birthPlace> ?birthPlace .
+                OPTIONAL {?s <http://schema.org/deathDate> ?deathDate} .
+                OPTIONAL {?s <http://schema.org/deathPlace> ?deathPlace} .
+                ?s <http://purl.org/dc/terms/subjects> ?subj .
+                FILTER regex(STR(?s), "%s", "i")
+                }
+            GROUP BY ?s ?name ?birthPlace ?birthDate ?deathDate ?deathPlace     
+        """ % subject)
+
+        data = self.reos.queryAndConvert()
+        ret = defaultdict(lambda: '?')
+        for x in data['results']['bindings']:
+            for k in x.keys():
+                ret[k] = x[k]['value']
+
+
+        return ret

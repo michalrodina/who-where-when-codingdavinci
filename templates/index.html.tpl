@@ -12,9 +12,9 @@
 <div id="header"></div>
 <div id="map-container">
 <div id="map"></div>
-<div id="popup" class="ol-popup">
-     <a href="#" id="popup-closer" class="ol-popup-closer"></a>
-     <div id="popup-content"></div>
+<div id="marker-popup" class="ol-popup">
+     <a href="#" id="marker-popup-closer" class="ol-popup-closer"></a>
+     <div id="marker-popup-content"></div>
  </div>
 </div>
 <div id="footer"></div>
@@ -41,42 +41,79 @@ markers_source = new ol.source.Vector({
 
 var icon_style = new ol.style.Style({
   image: new ol.style.Icon(({
-    anchor: [0.5, 46],
-    //size: [15, 45],
-    scale: 0.1,
+    anchor: [0.5, 1],
+    //size: [200, 200],
+    scale: 0.4,
     anchorXUnits: 'fraction',
-    anchorYUnits: 'pixels',
+    anchorYUnits: 'fraction',
     opacity: 0.75,
     src: 'styles/img/marker.png'
   }))
 });
 
-var markers_layer = new ol.layer.Vector({
-    source: markers_source
+var label_style = new ol.style.Style({
+  text: new ol.style.Text({
+    font: '12px Calibri,sans-serif',
+    overflow: true,
+    fill: new ol.style.Fill({
+      color: '#000'
+    }),
+    stroke: new ol.style.Stroke({
+      color: '#fff',
+      width: 3
+    }),
+    offsetY: -50
+  })
 });
 
-map.addLayer(markers_layer);
+var markers_layer = new ol.layer.Vector({
+    source: markers_source,
+    style: function(feature) {
+        console.log(feature);
+        label_style.getText().setText(feature.get('name'));
+        return feature.A.style;
+    }
+});
 
 const xhttp = new XMLHttpRequest();
 xhttp.onload = function() {
+
+
+
     var json = JSON.parse(this.responseText);
     for(i=0; i<json.data.length; i++) {
         if(json.data[i].marker) {
+            var marker_data = json.data[i].data
+            //console.log(marker_data);
+            text = marker_data[0].birthPlace.replace('--', ', okres ')+"<br>\n<br>\n";
+
+            for(j=0; j<marker_data.length; j++) {
+                //console.log(marker_data[j]);
+                //console.log(marker_data[j].name);
+
+                text += marker_data[j].name+"<br>\n";
+            }
             var marker = new ol.Feature({
                 geometry: new ol.geom.Point([json.data[i].marker[0], json.data[i].marker[1]]),
-                data: json.data[i].name + "<br>\n" + json.data[i].birthDate + " (" + json.data[i].birthPlace+") - " + json.data[i].deathDate + " (" + json.data[i].deathPlace +")"
+                //data: json.data[i].name + "<br>\n" + json.data[i].birthDate + " (" + json.data[i].birthPlace+") - " + json.data[i].deathDate + " (" + json.data[i].deathPlace +")"
+                data: text,
+                name: ''+marker_data.length,
+                style: [icon_style, label_style]
             });
-            marker.setStyle(icon_style);
+
             markers_source.addFeature(marker);
         }
     }
+
+    map.addLayer(markers_layer);
 }
 xhttp.open("GET", "data/markers", true);
 xhttp.send();
 
-var container = document.getElementById('popup');
-var content = document.getElementById('popup-content');
-var closer = document.getElementById('popup-closer');
+
+var container = document.getElementById('marker-popup');
+var content = document.getElementById('marker-popup-content');
+var closer = document.getElementById('marker-popup-closer');
 
 var overlay = new ol.Overlay({
     element: container,
