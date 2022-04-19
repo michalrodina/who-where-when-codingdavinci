@@ -49,6 +49,5 @@ def index(config):
     return render_template('index.html.tpl', **configs[config], markers=[])
     pass
 
-
 # Spusteni VYVOJOVEHO serveru
 app.run(host='127.0.0.1', port=8080, debug=True)

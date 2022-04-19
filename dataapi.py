@@ -28,7 +28,7 @@ sparql = DataSource()
 # Dummy JSON data
 @data_api.route('/data/markers')
 def data_markers():
-    data = sparql.load_items(False)
+    data = sparql.load_items("")
     df = pd.DataFrame(data)
 
     markers = []

@@ -98,8 +98,14 @@ class DataSource:
     def load_items(self, data_filter):
         # zpracuj data_filter
 
+        data_filter = data_filter.replace("?", "&")
+
+        filters = data_filter.split("&")
+
         # nacti data
-        self.reos.setQuery("""       
+        query = """
+        PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+                               
             SELECT
                 ?s 
                 ?name 
@@ -109,17 +115,22 @@ class DataSource:
                 ?deathPlace
                 (GROUP_CONCAT(?subj) AS ?subjects)
             WHERE
-            {
+            {{
                 ?s <http://schema.org/name> ?name .
                 ?s <http://schema.org/birthDate> ?birthDate .
                 ?s <http://schema.org/birthPlace> ?birthPlace .
-                OPTIONAL {?s <http://schema.org/deathDate> ?deathDate} .
-                OPTIONAL {?s <http://schema.org/deathPlace> ?deathPlace} .
+                OPTIONAL {{?s <http://schema.org/deathDate> ?deathDate}} .
+                OPTIONAL {{?s <http://schema.org/deathPlace> ?deathPlace}} .
                 ?s <http://purl.org/dc/terms/subjects> ?subj .
                 #FILTER regex(?subj, "keram", "i")
-            }
+                #FILTER regex(?name, "Jan","i")
+                {birthDate}
+            }}
             GROUP BY ?s ?name ?birthPlace ?birthDate ?deathDate ?deathPlace
-        """)
+        """
+        queryToUse = query.format(birthDate = "FILTER (?birthDate > \"1800-01-01\"^^xsd:date)")
+
+        self.reos.setQuery(queryToUse)
 
         data = self.reos.queryAndConvert()
 
