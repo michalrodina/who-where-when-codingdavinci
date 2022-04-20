@@ -22,7 +22,7 @@ class DataSource:
     # Vytvori (singleton?) spojeni s databazi plzenske knihovny
     def __init__(self):
         # REOS SPAQRL Endpoint
-        self.reos = SPARQLWrapper('https://fuseki.lib-lab.cz/reos/')
+        self.reos = SPARQLWrapper('https://fuseki.lib-lab.cz/reos/sparql')
         self.reos.setReturnFormat(JSON)
 
         # Wikidata SPARQL Endpoint
@@ -98,25 +98,25 @@ class DataSource:
     def load_items(self, data_filter):
         # zpracuj data_filter
 
-        data_filter = data_filter.replace("?", "&")
-
-        filters = data_filter.split("&")
-
         # nacti data
         query = """
         PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
                                
             SELECT
                 ?s 
-                ?name 
+                ?name
+                ?location
+                (GROUP_CONCAT(?desc) AS ?description)
                 ?birthDate
                 ?birthPlace 
                 ?deathDate
                 ?deathPlace
-                (GROUP_CONCAT(?subj) AS ?subjects)
+                (GROUP_CONCAT(?subj;SEPARATOR="\\n") AS ?subjects)
             WHERE
             {{
                 ?s <http://schema.org/name> ?name .
+                ?s <http://schema.org/workLocation> ?location .
+                ?s <http://schema.org/description> ?desc .
                 ?s <http://schema.org/birthDate> ?birthDate .
                 ?s <http://schema.org/birthPlace> ?birthPlace .
                 OPTIONAL {{?s <http://schema.org/deathDate> ?deathDate}} .
@@ -126,7 +126,7 @@ class DataSource:
                 #FILTER regex(?name, "Jan","i")
                 {birthDate}
             }}
-            GROUP BY ?s ?name ?birthPlace ?birthDate ?deathDate ?deathPlace
+            GROUP BY ?s ?name ?location ?birthPlace ?birthDate ?deathDate ?deathPlace
         """
         queryToUse = query.format(birthDate = "FILTER (?birthDate > \"1800-01-01\"^^xsd:date)")
 
@@ -148,6 +148,28 @@ class DataSource:
                 item['name'] = 'Chyba'
 
             try:
+                item['location'] = person['location']['value']
+                #city = person['birthPlace']['value'].split('--')
+                #if city[0] in self.geoloc:
+                if person['location']['value'] in self.geoloc:
+                    # print(city[0], city[1], self.geoloc[city[0]])
+                    ##point = re.findall("\d+\.\d+",  self.geoloc[city])
+                    point = re.findall("\d+\.\d+",  self.geoloc[person['location']['value']])
+                    item['marker'] = (point[0], point[1])
+                else:
+                    # print(city[0], city[1], 'Nenalezeno')
+                    item['marker'] = False
+            except KeyError:
+                item['location'] = '?'
+                item['marker'] = False
+
+            try:
+                item['description'] = person['description']['value']
+
+            except KeyError:
+                item['description'] = '?'
+
+            try:
                 item['birthDate'] = person['birthDate']['value']
 
             except KeyError:
@@ -155,19 +177,8 @@ class DataSource:
 
             try:
                 item['birthPlace'] = person['birthPlace']['value']
-                #city = person['birthPlace']['value'].split('--')
-                #if city[0] in self.geoloc:
-                if person['birthPlace']['value'] in self.geoloc:
-                    # print(city[0], city[1], self.geoloc[city[0]])
-                    ##point = re.findall("\d+\.\d+",  self.geoloc[city])
-                    point = re.findall("\d+\.\d+",  self.geoloc[person['birthPlace']['value']])
-                    item['marker'] = (point[0], point[1])
-                else:
-                    # print(city[0], city[1], 'Nenalezeno')
-                    item['marker'] = False
             except KeyError:
                 item['birthPlace'] = '?'
-                item['marker'] = False
 
             try:
                 item['deathDate'] = person['deathDate']['value']
@@ -189,6 +200,10 @@ class DataSource:
         return ret
         pass
 
+    def search_name(self):
+
+        pass
+
     ##
     # Nacist jednu osobu dle <https://svkpk.cz/resources/reos/{subject}>
     #
@@ -201,7 +216,9 @@ class DataSource:
         self.reos.setQuery("""
             SELECT
                 ?s 
-                ?name 
+                ?name
+                ?location
+                ?description 
                 ?birthDate
                 ?birthPlace 
                 ?deathDate
@@ -210,6 +227,8 @@ class DataSource:
             WHERE
               {
                 ?s <http://schema.org/name> ?name .
+                ?s <http://schema.org/workLocation> ?location .
+                ?s <http://schema.org/description> ?description .
                 ?s <http://schema.org/birthDate> ?birthDate .
                 ?s <http://schema.org/birthPlace> ?birthPlace .
                 OPTIONAL {?s <http://schema.org/deathDate> ?deathDate} .
@@ -217,7 +236,7 @@ class DataSource:
                 ?s <http://purl.org/dc/terms/subjects> ?subj .
                 FILTER regex(STR(?s), "%s", "i")
                 }
-            GROUP BY ?s ?name ?birthPlace ?birthDate ?deathDate ?deathPlace     
+            GROUP BY ?s ?name ?location ?description ?birthPlace ?birthDate ?deathDate ?deathPlace     
         """ % subject)
 
         data = self.reos.queryAndConvert()

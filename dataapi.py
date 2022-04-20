@@ -13,7 +13,7 @@
 # - Vyzkoumat efektivni zpusob vypisovani dat do JSONu (nejradeji pomoci render_template)
 # - Definovat potrebne endpointy (markery, infoboxy, popup okna s detaily, atp.)
 
-from flask import Blueprint, render_template, Response
+from flask import Blueprint, render_template, request, Response
 from datasource import DataSource
 import pandas as pd
 import json
@@ -26,8 +26,13 @@ sparql = DataSource()
 
 
 # Dummy JSON data
-@data_api.route('/data/markers')
+@data_api.route('/data/markers', methods=['POST'])
 def data_markers():
+    params = request.data
+    print('POST DATA', request.form.get('filter1'), request.form.get('filter1') is None)
+    print('POST DATA', request.form.get('filter2'), request.form.get('filter2') is None)
+    print('POST DATA', request.form.get('filter3'), request.form.get('filter3') is None)
+
     data = sparql.load_items("")
     df = pd.DataFrame(data)
 
@@ -35,7 +40,7 @@ def data_markers():
     for m in df.marker.unique():
         # print(df[df.marker==m])
         markers.append({"marker": m, "data": df[df.marker==m].to_dict(orient='records')})
-
+    # print(markers)
     r = Response(response=render_template('data_markers.json.tpl', data=json.dumps(markers)))
     r.headers["Content-Type"] = "application/json; charset=utf-8"
     return r
@@ -63,6 +68,8 @@ def data_item(param):
     # - Popis           (<http://schema.org/description>)
     # - Zamestnani      (<http://schema.org/hasOccupation>)
     # - Zdroje          (<http://www.loc.gov/mads/rdf/v1#Source>)
+
+
     data = sparql.load_item(param)
 
     return render_template('data_markers.json.tpl', data=json.dumps(data))

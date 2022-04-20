@@ -6,7 +6,7 @@ html, body {
 
         #header {
             width: 100%;
-            height: 45px;
+            height: 78px;
             margin: 0; padding: 0;
 
             position: absolute;
@@ -14,7 +14,14 @@ html, body {
             right: 0;
             z-index: 1000;
 
-            outline: 1px solid red;
+            background: #5ABE73
+        }
+
+        #header #main-logo {
+            position: relative;
+            left: 10px;
+            top: 5px;
+
         }
 
         #map-container {
@@ -28,6 +35,27 @@ html, body {
             width: 100%;
             height: 100%;
             margin: 0; padding: 0;
+        }
+
+        .content-box {
+            display: none;
+            height: 80%;
+            width: 50%;
+            max-width: 600px;
+            overflow-y: scroll;
+
+            position: absolute;
+            top: 40px;
+            right: 0;
+            z-index: 1000;
+
+            padding: 15px;
+            background: white;
+        }
+
+        #filters {
+            display: block;
+            z-index: 999;
         }
 
         #footer {
