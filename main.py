@@ -44,9 +44,10 @@ def index(config):
     # vyhledat konifguraci kiosku, pokud neexistuje pouzit general
     if config not in configs.keys():
         config = 'general'
-
+    vars = configs[config]
+    vars['okresy'] = [{"name": "Klatovy", "id": "Klatovy"}, {"name": "Plzeň - sever", "id": "Klatovy"}]
     # vykreslit sablonu s nactenou konfiguraci (**operator vlozi obsah dictu jako promenne)
-    return render_template('index.html.tpl', **configs[config], markers=[])
+    return render_template('index.html.tpl', **vars, markers=[])
     pass
 
 # Spusteni VYVOJOVEHO serveru

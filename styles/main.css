@@ -39,6 +39,7 @@ html, body {
 
         .content-box {
             display: none;
+            margin-top: 85px;
             height: 80%;
             width: 50%;
             max-width: 600px;
@@ -51,6 +52,16 @@ html, body {
 
             padding: 15px;
             background: white;
+        }
+
+        .content-closer {
+            position: absolute;
+            left: 5px;
+            top: 5px;
+
+            width: 10px;
+            height: 10px;
+            background: black;
         }
 
         #filters {

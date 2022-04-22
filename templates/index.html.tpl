@@ -10,7 +10,7 @@
     <link type="text/css" rel="stylesheet" href="styles/main.css" />
 </head>
 <body>
-<div id="header"><a id="main-logo"><img src="styles/img/logo.png" height="85"/></a></div>
+<div id="header"><a id="main-logo"><img src="styles/img/logo.png" height="8w5"/></a></div>
 <div id="map-container">
 <div id="map"></div>
     <div id="marker-popup" class="ol-popup">
@@ -21,23 +21,29 @@
 </div>
 <div id="filters" class="content-box">
     <a href="#" id="filters-closer" class="content-closer"></a>
-    <form>
+    <form id="filter-form">
     <label for="filter-okres">Okres</label>
     <select name="filter-okres" id="filter-okres">
     {% for each in okresy %}
 
-    <option value="{{each}}" {% if each == "list_status" %} selected {% endif %}>{{each}}</option>
+    <option value="{{each.id}}" {% if each == "list_status" %} selected {% endif %}>{{each.name}}</option>
 
     {% endfor %}
     </select>
+    <button id="filters-submit">Filtrovat</button>
 </div>
 <div id="content" class="content-box">
-<a href="#" id="filters-closer" class="content-closer"></a>
+<a href="#" id="content-closer" class="content-closer"></a>
+<div class="content-wrap">
+</div>
 </div>
 <div id="footer"></div>
 
 <script type="text/javascript">
 $(function() {
+
+    console.log('Hello!');
+
     ol.proj.useGeographic();
 
     var map = new ol.Map({
@@ -52,10 +58,6 @@ $(function() {
             zoom: {{map.zoom}},
           }),
         });
-
-    markers_source = new ol.source.Vector({
-        features: []
-    });
 
     var icon_style = new ol.style.Style({
       image: new ol.style.Icon(({
@@ -84,6 +86,10 @@ $(function() {
       })
     });
 
+    markers_source = new ol.source.Vector({
+        features: []
+    });
+
     var markers_layer = new ol.layer.Vector({
         source: markers_source,
         style: function(feature) {
@@ -93,48 +99,65 @@ $(function() {
         }
     });
 
-    const xhttp = new XMLHttpRequest();
-    xhttp.onload = function() {
+    $('#filter-form').on('submit', function(e) {
+        e.preventDefault();
 
+        var data_filter = {
+            "okres": $('#filter-form #filter-okres').val()
+        };
+        console.log(data_filter);
+        load_markers(data_filter);
 
+    });
 
-        var json = JSON.parse(this.responseText);
-        for(i=0; i<json.data.length; i++) {
-            if(json.data[i].marker) {
-                var marker_data = json.data[i].data
-                //console.log(marker_data);
-                text = "<h2>"+marker_data[0].location.replace('--', ', okres ')+"</h2>\n";
+    function load_markers(data_filter) {
 
-                for(j=0; j<marker_data.length; j++) {
-                    //console.log(marker_data[j]);
-                    //console.log(marker_data[j].name);
-                    var id = marker_data[j].s.substring(32);
-                    text += '<h3><a href="http://127.0.0.1:8080/data/item/'+id+'" class="content-link-person" data-key="'+id+'">'+marker_data[j].name+"</a></h3>\n";
-                    text += '<p>'+marker_data[j].description+"</p><br>\n";
-                    text += "<br>\n";
+        const xhttp = new XMLHttpRequest();
+        xhttp.onload = function() {
+
+            markers_source.clear();
+
+            var json = JSON.parse(this.responseText);
+            for(i=0; i<json.data.length; i++) {
+                if(json.data[i].marker) {
+                    var marker_data = json.data[i].data
+                    //console.log(marker_data);
+                    text = "<h2>"+marker_data[0].location.replace('--', ', okres ')+"</h2>\n";
+
+                    for(j=0; j<marker_data.length; j++) {
+                        //console.log(marker_data[j]);
+                        //console.log(marker_data[j].name);
+                        var id = marker_data[j].s.substring(32);
+                        text += '<h3><a href="http://127.0.0.1:8080/data/item/'+id+'" class="content-link-person" data-key="'+id+'">'+marker_data[j].name+"</a></h3>\n";
+                        text += '<p>'+marker_data[j].description+"</p><br>\n";
+                        text += "<br>\n";
+                    }
+                    var marker = new ol.Feature({
+                        geometry: new ol.geom.Point([json.data[i].marker[0], json.data[i].marker[1]]),
+                        //data: json.data[i].name + "<br>\n" + json.data[i].birthDate + " (" + json.data[i].birthPlace+") - " + json.data[i].deathDate + " (" + json.data[i].deathPlace +")"
+                        data: text,
+                        name: ''+marker_data.length,
+                        style: [icon_style, label_style]
+                    });
+
+                    markers_source.addFeature(marker);
                 }
-                var marker = new ol.Feature({
-                    geometry: new ol.geom.Point([json.data[i].marker[0], json.data[i].marker[1]]),
-                    //data: json.data[i].name + "<br>\n" + json.data[i].birthDate + " (" + json.data[i].birthPlace+") - " + json.data[i].deathDate + " (" + json.data[i].deathPlace +")"
-                    data: text,
-                    name: ''+marker_data.length,
-                    style: [icon_style, label_style]
-                });
-
-                markers_source.addFeature(marker);
             }
+
+            map.addLayer(markers_layer);
         }
 
-        map.addLayer(markers_layer);
+        xhttp.open("POST", "data/markers", true);
+        xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+        console.log(data_filter);
+        xhttp.send($.param(data_filter));
+
     }
-    xhttp.open("POST", "data/markers", true);
-    xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-    xhttp.send('filter1=val1&filter2&val2');
+
 
 
     var container = document.getElementById('marker-popup');
     var content = document.getElementById('marker-popup-content');
-    var content_box = document.getElementById('content');
     var closer = document.getElementById('marker-popup-closer');
 
     var overlay = new ol.Overlay({
@@ -153,6 +176,9 @@ $(function() {
         return false;
     };
 
+
+    var content_box = document.getElementById('content');
+
     map.on('singleclick', function (event) {
         if (map.hasFeatureAtPixel(event.pixel) === true) {
             var coordinate = event.coordinate;
@@ -162,15 +188,17 @@ $(function() {
             })
 
             // overlay.setPosition(coordinate);
-            overlay.setPosition(undefined);
-            closer.blur();
+            //overlay.setPosition(undefined);
+            //closer.blur();
             $(content_box).show(100);
         } else {
             $(content_box).blur().hide(100);
-            overlay.setPosition(undefined);
-            closer.blur();
+            //overlay.setPosition(undefined);
+            //closer.blur();
         }
     });
+
+    load_markers({"okres": "Pplzeň"});
 });
 </script>
 </body>

@@ -28,16 +28,15 @@ sparql = DataSource()
 # Dummy JSON data
 @data_api.route('/data/markers', methods=['POST'])
 def data_markers():
-    params = request.data
-    print('POST DATA', request.form.get('filter1'), request.form.get('filter1') is None)
-    print('POST DATA', request.form.get('filter2'), request.form.get('filter2') is None)
-    print('POST DATA', request.form.get('filter3'), request.form.get('filter3') is None)
-
-    data = sparql.load_items("")
+    filter = {}
+    for key, value in request.form.items():
+        filter[key] = value
+    data = sparql.load_items(filter)
     df = pd.DataFrame(data)
 
     markers = []
     for m in df.marker.unique():
+        if m == False: continue
         # print(df[df.marker==m])
         markers.append({"marker": m, "data": df[df.marker==m].to_dict(orient='records')})
     # print(markers)

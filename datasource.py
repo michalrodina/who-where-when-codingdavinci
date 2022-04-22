@@ -96,7 +96,6 @@ class DataSource:
     #
     # Nacita vsechny polozky z datasource s vybranou mnozinou vlastnosti
     def load_items(self, data_filter):
-        # zpracuj data_filter
 
         # nacti data
         query = """
@@ -106,7 +105,7 @@ class DataSource:
                 ?s 
                 ?name
                 ?location
-                (GROUP_CONCAT(?desc) AS ?description)
+                ?description
                 ?birthDate
                 ?birthPlace 
                 ?deathDate
@@ -116,7 +115,7 @@ class DataSource:
             {{
                 ?s <http://schema.org/name> ?name .
                 ?s <http://schema.org/workLocation> ?location .
-                ?s <http://schema.org/description> ?desc .
+                ?s <http://schema.org/description> ?description .
                 ?s <http://schema.org/birthDate> ?birthDate .
                 ?s <http://schema.org/birthPlace> ?birthPlace .
                 OPTIONAL {{?s <http://schema.org/deathDate> ?deathDate}} .
@@ -126,8 +125,12 @@ class DataSource:
                 #FILTER regex(?name, "Jan","i")
                 {birthDate}
             }}
-            GROUP BY ?s ?name ?location ?birthPlace ?birthDate ?deathDate ?deathPlace
+            GROUP BY ?s ?name ?location ?description ?birthPlace ?birthDate ?deathDate ?deathPlace
         """
+
+        # zpracuj data_filter
+        print("datasource", data_filter)
+
         queryToUse = query.format(birthDate = "FILTER (?birthDate > \"1800-01-01\"^^xsd:date)")
 
         self.reos.setQuery(queryToUse)

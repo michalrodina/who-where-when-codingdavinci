@@ -7,6 +7,8 @@
             "center_lat":   49.637400,
             "center_lon":   13.612100,
             "zoom":         10
+        },
+        "default_filter": {
         }
     },
     "plzen": {
@@ -17,6 +19,11 @@
             "center_lat":   49.741389,
             "center_lon":   13.382500,
             "zoom":         15
+        },
+        "default_filter": {
+            "filter":       "okres",
+            "value":        "Plzeň"
+
         }
     },
     "klatovy": {
@@ -27,6 +34,11 @@
             "center_lat":   49.395278,
             "center_lon":   13.29500,
             "zoom":         15
+        },
+        "default_filter": {
+            "filter":       "okres",
+            "value":        "Plzeň"
+
         }
     }
 }
