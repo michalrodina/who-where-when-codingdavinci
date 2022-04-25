@@ -6,6 +6,7 @@ from SPARQLWrapper import SPARQLWrapper, JSON
 import json
 from collections import defaultdict
 import re
+from dataModel.village import village
 
 # # TODO:
 # - Navrhnout metody pro ziskavani dat
@@ -29,7 +30,7 @@ class DataSource:
         self.wiki = SPARQLWrapper('https://query.wikidata.org/sparql')
         self.wiki.setReturnFormat(JSON)
 
-        self.load_geoloc()
+        self.okresy = self.load_geoloc()
 
 
     def load_geoloc(self, city_label=""):
@@ -41,22 +42,20 @@ class DataSource:
                 ?location wdt:P131 ?region .
                 ?location wdt:P31 wd:Q5153359 .
                 ?location wdt:P625 ?geoloc .
-                # cs_label pro poteby pripadne filtrace v dotazu
-                #?location rdfs:label ?cs_label .
-                #FILTER (lang(?cs_label) = "cs") .
-                #FILTER (regex((?cs_label), "%s")).
 
                 SERVICE wikibase:label { bd:serviceParam wikibase:language "cs". }
                 }
 
-        """ % city_label)
+        """)
 
         try:
             data = self.wiki.queryAndConvert()
-
+            ret = defaultdict(list)
             for g in data['results']['bindings']:
-                self.geoloc[g['locationLabel']['value'] + '--' + g['regionLabel']['value'].replace('okres ', '')] = \
-                    g['geoloc']['value']
+                k = g['locationLabel']['value'] + '--' + g['regionLabel']['value'].replace('okres ', '')
+                self.geoloc[k] = g['geoloc']['value']
+                vil = village(k)
+                ret[vil.shire].append(vil)
         except:
             print('Nepodařilo se načíst wikidata zdroj geolokace. Načítám lokální JSON zdroj.')
             fjson = open('assets/wikidata_geoloc.json', encoding='utf8')
@@ -67,7 +66,7 @@ class DataSource:
 
         # Natahnout geolokacni data pro obce CR z Wikidat
 
-        pass
+        return ret
 
     # Gettery:
     ##
