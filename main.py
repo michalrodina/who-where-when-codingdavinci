@@ -52,6 +52,6 @@ def index(config):
     # vykreslit sablonu s nactenou konfiguraci (**operator vlozi obsah dictu jako promenne)
     return render_template('index.html.tpl', **vars, markers=[])
     pass
-
-# Spusteni VYVOJOVEHO serveru
-app.run(host='127.0.0.1', port=8080, debug=True)
+if __name__ == "__main__":
+    # Spusteni VYVOJOVEHO serveru
+    app.run(host='127.0.0.1', port=8080, debug=True)
