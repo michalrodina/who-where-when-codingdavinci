@@ -124,14 +124,24 @@ class DataSource:
                 #FILTER regex(?subj, "keram", "i")
                 #FILTER regex(?name, "Jan","i")
                 {birthDate}
+                {okresFilter}
             }}
             GROUP BY ?s ?name ?location ?description ?birthPlace ?birthDate ?deathDate ?deathPlace
         """
 
         # zpracuj data_filter
+        # okres: Plzeň
         print("datasource", data_filter)
 
-        queryToUse = query.format(birthDate = "FILTER (?birthDate > \"1800-01-01\"^^xsd:date)")
+        bday = ""
+        if "birthDay" in data_filter:
+            bday = "FILTER (?birthDate > \"@bday\"^^xsd:date)".replace("@bday", data_filter["birthDay"])
+
+        okres = ""
+        if "okres" in data_filter:
+            okres = "FILTER regex(?location , \"@location\", \"i\")".replace("@location", data_filter["okres"])
+
+        queryToUse = query.format(birthDate=bday, okresFilter=okres)
 
         self.reos.setQuery(queryToUse)
 
@@ -247,6 +257,25 @@ class DataSource:
         for x in data['results']['bindings']:
             for k in x.keys():
                 ret[k] = x[k]['value']
+
+        query = """
+                             PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+        SELECT distinct ?item ?itemLabel ?image WHERE 
+        {{
+          ?item wdt:P31 wd:Q5.
+          ?item ?label \"{name}\"@cs .
+          ?item wdt:P569 ?P569_2.
+          ?item wdt:P18 ?image
+          BIND("{born}"^^xsd:dateTime AS ?P569_2)
+          SERVICE wikibase:label {{ bd:serviceParam wikibase:language "cs". }}
+        }}
+                        """
+        usedQuery = query.format( name = self.prepareName(ret["name"].replace(',', '')), born = ret["birthDate"])
+        self.wiki.setQuery(usedQuery)
+
+        dataImage = self.wiki.queryAndConvert()
+        #try:
+        #    ret["image"] = dataImage['results']['bindings'][0]['image']['value']
 
 
         return ret

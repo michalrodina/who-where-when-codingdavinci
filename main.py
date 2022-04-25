@@ -45,7 +45,7 @@ def index(config):
     if config not in configs.keys():
         config = 'general'
     vars = configs[config]
-    vars['okresy'] = [{"name": "Klatovy", "id": "Klatovy"}, {"name": "Plzeň - sever", "id": "Klatovy"}]
+    vars['okresy'] = [{"name": "Klatovy", "id": "Klatovy"}, {"name": "Plzeň - sever", "id": "Plzeň"}]
     # vykreslit sablonu s nactenou konfiguraci (**operator vlozi obsah dictu jako promenne)
     return render_template('index.html.tpl', **vars, markers=[])
     pass

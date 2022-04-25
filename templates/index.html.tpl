@@ -198,7 +198,7 @@ $(function() {
         }
     });
 
-    load_markers({"okres": "Pplzeň"});
+    load_markers({"okres": "Plzeň"});
 });
 </script>
 </body>
