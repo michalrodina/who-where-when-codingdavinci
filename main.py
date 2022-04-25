@@ -8,6 +8,9 @@ from flask import Flask, render_template, send_from_directory
 from dataapi import data_api
 import json
 
+import os
+os.chdir(os.path.dirname(__file__))
+
 # Inicializace Flask aplikace
 app = Flask(__name__, template_folder='./templates/')
 app.register_blueprint(data_api)

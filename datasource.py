@@ -217,6 +217,9 @@ class DataSource:
 
         pass
 
+    def prepareName(self, name):
+        return name
+
     ##
     # Nacist jednu osobu dle <https://svkpk.cz/resources/reos/{subject}>
     #

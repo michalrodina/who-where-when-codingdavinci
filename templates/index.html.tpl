@@ -10,7 +10,7 @@
     <link type="text/css" rel="stylesheet" href="styles/main.css" />
 </head>
 <body>
-<div id="header"><a id="main-logo"><img src="styles/img/logo.png" height="8w5"/></a></div>
+<div id="header"><a id="main-logo"><img src="styles/img/logo.png" height="85"/></a></div>
 <div id="map-container">
 <div id="map"></div>
     <div id="marker-popup" class="ol-popup">
@@ -122,20 +122,30 @@ $(function() {
                 if(json.data[i].marker) {
                     var marker_data = json.data[i].data
                     //console.log(marker_data);
-                    text = "<h2>"+marker_data[0].location.replace('--', ', okres ')+"</h2>\n";
+                    var person_rows = $('<div />');
+                    $(person_rows).append($("<h2>"+marker_data[0].location.replace('--', ', okres ')+"</h2>\n"));
 
                     for(j=0; j<marker_data.length; j++) {
                         //console.log(marker_data[j]);
                         //console.log(marker_data[j].name);
                         var id = marker_data[j].s.substring(32);
+                        var text = "";
+
+                        var person = $('<div class="person"/>');
+                        person.append(
+                            $('<h3>').append(
+                                $('<a href="#" data-id="'+id+'"/>').html(marker_data[j].name)
+                            )
+                        );
                         text += '<h3><a href="http://127.0.0.1:8080/data/item/'+id+'" class="content-link-person" data-key="'+id+'">'+marker_data[j].name+"</a></h3>\n";
-                        text += '<p>'+marker_data[j].description+"</p><br>\n";
+                        text += '<p><span class="date brith-date">'+marker_data[j].birthDate + '</span> - <span class="date death-date">' + marker_data[j].deathDate + "</span></p><br>\n";
+                        text += '<p>' + marker_data[j].subjects + "</p><br>\n";
                         text += "<br>\n";
+                        $(person_rows).append(person);
                     }
                     var marker = new ol.Feature({
                         geometry: new ol.geom.Point([json.data[i].marker[0], json.data[i].marker[1]]),
-                        //data: json.data[i].name + "<br>\n" + json.data[i].birthDate + " (" + json.data[i].birthPlace+") - " + json.data[i].deathDate + " (" + json.data[i].deathPlace +")"
-                        data: text,
+                        data: person_rows.html(),
                         name: ''+marker_data.length,
                         style: [icon_style, label_style]
                     });
@@ -145,12 +155,50 @@ $(function() {
             }
 
             map.addLayer(markers_layer);
+
         }
 
         xhttp.open("POST", "data/markers", true);
         xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
         console.log(data_filter);
         xhttp.send($.param(data_filter));
+
+    }
+
+    function load_detail(person_id) {
+
+
+        const xhttp = new XMLHttpRequest();
+        xhttp.onload = function() {
+
+            var content_html = $('<div class="content-html">');
+            var json = JSON.parse(this.responseText);
+            console.log('person detail', json['data']);
+
+            var name = $('<h2 />');
+            $(name).html(json['data']['name']);
+            $(content_html).append(name);
+            //*†
+            var life = $('<div class="content-life-span"/>');
+            $(life).append($('<span class="birth-date">'+json['data']['birthDate']+' '+json['data']['birthPlace'].replace('--', ', okres ')+'</span>'));
+            if(typeof json['data']['deathDate'] !== 'undefined') {
+                $(life).append($('<br />'));
+                $(life).append($('<span class="death-date">'+json['data']['deathDate']+' '+json['data']['deathPlace'].replace('--', ', okres ')+'</span>'));
+            }
+            $(content_html).append(life);
+
+            var desc = $('<div class="content-description" />');
+            $(desc).append($('<p>'+json['data']['description']+'</p>'));
+            $(content_html).append(desc);
+
+
+            $(content_box).html($(content_html).html());
+
+        }
+
+        xhttp.open("GET", "data/item/"+person_id, true);
+        xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+        xhttp.send();
 
     }
 
@@ -187,6 +235,15 @@ $(function() {
                 content_box.innerHTML += feature.A.data + '<br>\n<br>\n';
             })
 
+            $('.person').each(function(el) {
+                $(this).find('a').on('click', function(e) {
+                    e.preventDefault();
+                    var person_id = $(e.target).attr('data-id');
+                    console.log('clicked', $(this), $(e.target).attr('data-id'));
+                    load_detail(person_id);
+                });
+            });
+
             // overlay.setPosition(coordinate);
             //overlay.setPosition(undefined);
             //closer.blur();
@@ -198,7 +255,7 @@ $(function() {
         }
     });
 
-    load_markers({"okres": "Plzeň"});
+    load_markers({"{{default_filter.filter}}": "{{default_filter.value}}"});
 });
 </script>
 </body>

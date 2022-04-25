@@ -68,7 +68,16 @@ def data_item(param):
     # - Zamestnani      (<http://schema.org/hasOccupation>)
     # - Zdroje          (<http://www.loc.gov/mads/rdf/v1#Source>)
 
+    data = {"name": "?",
+            "subjects": "?",
+            "birthDate": "?",
+            "birthPlace": "?",
+            "description": "?",
+            "hasOccupation": "?",
+            "source": "?"}
+    loaded = sparql.load_item(param)
+    data = {**data, **loaded}
 
-    data = sparql.load_item(param)
+
 
     return render_template('data_markers.json.tpl', data=json.dumps(data))

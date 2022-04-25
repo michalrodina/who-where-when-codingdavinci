@@ -54,6 +54,14 @@ html, body {
             background: white;
         }
 
+        .birth-date::before {
+            content: '*'
+        }
+
+        .death-date::before {
+            content: '†'
+        }
+
         .content-closer {
             position: absolute;
             left: 5px;
