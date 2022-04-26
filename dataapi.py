@@ -37,10 +37,13 @@ def data_markers():
     df = pd.DataFrame(data)
 
     markers = []
-    for m in df.marker.unique():
-        if m == False: continue
-        # print(df[df.marker==m])
-        markers.append({"marker": m, "data": df[df.marker==m].to_dict(orient='records')})
+    try:
+        for m in df.marker.unique():
+            if m == False: continue
+            # print(df[df.marker==m])
+            markers.append({"marker": m, "data": df[df.marker==m].to_dict(orient='records')})
+    except AttributeError:
+        pass
     # print(markers)
     r = Response(response=render_template('data_markers.json.tpl', data=json.dumps(markers)))
     r.headers["Content-Type"] = "application/json; charset=utf-8"

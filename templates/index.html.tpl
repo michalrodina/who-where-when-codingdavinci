@@ -28,7 +28,7 @@
             <option value="">-- Vše --</option>
             {% for each in okresy %}
 
-            <option value="{{each.id}}" {% if each == "list_status" %} selected {% endif %}>{{each.name}}</option>
+            <option value="{{each.id}}" {% if default_filter.okres == each.id %} selected {% endif %} >{{each.name}}</option>
 
             {% endfor %}
         </select>
@@ -40,7 +40,7 @@
             <option value="">-- Vše --</option>
             {% for each in obce %}
 
-            <option value="{{each.id}}" {% if each == "list_status" %} selected {% endif %}>{{each.name}}</option>
+            <option value="{{each.id}}" {% if default_filter.filter == "obec" and each == default_filter.value %} selected {% endif %}>{{each.name}}</option>
 
             {% endfor %}
         </select>
@@ -52,7 +52,7 @@
             <option value="">-- Vše --</option>
             {% for each in obory %}
 
-            <option value="{{each.id}}" {% if each == "list_status" %} selected {% endif %}>{{each.name}}</option>
+            <option value="{{each.id}}" {% if default_filter.filter == "obor" and each == default_filter.value %} selected {% endif %}>{{each.name}}</option>
 
             {% endfor %}
         </select>
@@ -356,7 +356,7 @@ $(function() {
         }
     });
 
-    load_markers({"{{default_filter.filter}}": "{{default_filter.value}}"});
+    load_markers({{default_filter}});
 });
 </script>
 </body>

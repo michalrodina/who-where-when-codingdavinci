@@ -21,8 +21,7 @@
             "zoom":         15
         },
         "default_filter": {
-            "filter":       "okres",
-            "value":        "Plzeň"
+            "okres":       "Plzeň"
 
         }
     },
@@ -36,8 +35,7 @@
             "zoom":         15
         },
         "default_filter": {
-            "filter":       "okres",
-            "value":        "Klatovy"
+            "okres":        "Klatovy"
 
         }
     }
