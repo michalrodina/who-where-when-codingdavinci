@@ -1,155 +1,190 @@
 html, body {
-            width: 100%;
-            height: 100%;
-            margin: 0; padding: 0;
-        }
+    width: 100%;
+    height: 100%;
+    margin: 0; padding: 0;
 
-        #header {
-            width: 100%;
-            height: 78px;
-            margin: 0; padding: 0;
+    font-family: Calibri, Helvetica
+}
 
-            position: absolute;
-            top: 0;
-            right: 0;
-            z-index: 1000;
+#header {
+    width: 100%;
+    height: 78px;
+    margin: 0; padding: 0;
 
-            background: #5ABE73
-        }
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 1000;
 
-        #header #main-logo {
-            position: relative;
-            left: 10px;
-            top: 5px;
+    background: #5ABE73
+}
 
-        }
+#header #main-logo {
+    position: relative;
+    left: 10px;
+    top: 5px;
 
-        #map-container {
-            width: 100%;
-            height: 100%;
-            margin: 0; padding: 0;
-            z-index: 0;
-        }
+}
 
-        #map {
-            width: 100%;
-            height: 100%;
-            margin: 0; padding: 0;
-        }
+a:link, a:visited, a:active {
+    color: black;
+    text-decoration: none;
+}
 
-        .content-box {
-            display: none;
-            margin-top: 85px;
-            height: 80%;
-            width: 50%;
-            max-width: 600px;
-            overflow-y: scroll;
+a:hover {
+    color: black;
+    text-decoration: underline;
+}
 
-            position: absolute;
-            top: 40px;
-            right: 0;
-            z-index: 1000;
+#map-container {
+    width: 100%;
+    height: 100%;
+    margin: 0; padding: 0;
+    z-index: 0;
+}
 
-            padding: 15px;
-            background: white;
-        }
+#map {
+    width: 100%;
+    height: 100%;
+    margin: 0; padding: 0;
+}
 
-        .birth-date::before {
-            content: '*'
-        }
+.content-box {
+    display: none;
+    margin-top: 85px;
+    height: 80%;
+    width: 50%;
+    max-width: 600px;
+    overflow-y: scroll;
 
-        .death-date::before {
-            content: '†'
-        }
+    position: absolute;
+    top: 40px;
+    right: 0;
+    z-index: 1000;
 
-        .content-closer {
-            position: absolute;
-            left: 5px;
-            top: 5px;
+    padding: 15px;
+    background: white;
+}
 
-            width: 10px;
-            height: 10px;
-            background: black;
-        }
+.content-box h2 {
+    border-bottom: 1px solid #5ABE73;
+}
 
-        #filters {
-            display: block;
-            z-index: 999;
-        }
+.content-life-span {
+    float: left;
+    clear: none;
+}
 
-        #footer {
-            width: 100%;
-            height: 20px;
-            margin: 0; padding: 0;
+.birth-date::before {
+    content: '*' / "Narozen/a";
+}
 
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            z-index: 1000;
+.death-date::before {
+    content: '†' / "Zemřel/a";
+}
 
-            outline: 1px solid red;
-        }
+.content-portrait {
+    float: right;
+    clear: none;
+    max-width: 250px;
+    margin-left: 1.5em;
 
-        .ol-attribution.ol-logo-only,
-        .ol-attribution.ol-uncollapsible {
-            max-width: calc(100% - 3em) !important;
-            height: 1.5em !important;
-        }
+    border: 5px solid #5ABE73;
+}
 
-        .ol-control button,
-        .ol-attribution,
-        .ol-scale-line-inner {
-            font-family: 'Lucida Grande', Verdana, Geneva, Lucida, Arial, Helvetica, sans-serif !important;
-        }
+.content-description {
+    clear: left;
+    padding-top: 1.5em;
+}
 
-        .ol-popup {
-            font-family: 'Lucida Grande', Verdana, Geneva, Lucida, Arial, Helvetica, sans-serif !important;
-            font-size: 12px;
-            position: absolute;
-            background-color: white;
-            -webkit-filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.2));
-            filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.2));
-            padding: 15px;
-            border-radius: 10px;
-            border: 1px solid #cccccc;
-            bottom: 12px;
-            left: -50px;
-            min-width: 100px;
-        }
+.content-closer {
+    position: absolute;
+    left: 5px;
+    top: 5px;
 
-        .ol-popup:after,
-        .ol-popup:before {
-            top: 100%;
-            border: solid transparent;
-            content: " ";
-            height: 0;
-            width: 0;
-            position: absolute;
-            pointer-events: none;
-        }
+    width: 10px;
+    height: 10px;
+    background: black;
+}
 
-        .ol-popup:after {
-            border-top-color: white;
-            border-width: 10px;
-            left: 48px;
-            margin-left: -10px;
-        }
+#filters {
+    display: block;
+    z-index: 999;
+}
 
-        .ol-popup:before {
-            border-top-color: #cccccc;
-            border-width: 11px;
-            left: 48px;
-            margin-left: -11px;
-        }
+#footer {
+    width: 100%;
+    height: 20px;
+    margin: 0; padding: 0;
 
-        .ol-popup-closer {
-            text-decoration: none;
-            position: absolute;
-            top: 2px;
-            right: 8px;
-        }
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    z-index: 1000;
 
-        .ol-popup-closer:after {
-            content: "✖";
-            color: #c3c3c3;
-        }
+    outline: 1px solid red;
+}
+
+.ol-attribution.ol-logo-only,
+.ol-attribution.ol-uncollapsible {
+    max-width: calc(100% - 3em) !important;
+    height: 1.5em !important;
+}
+
+.ol-control button,
+.ol-attribution,
+.ol-scale-line-inner {
+    font-family: 'Lucida Grande', Verdana, Geneva, Lucida, Arial, Helvetica, sans-serif !important;
+}
+
+.ol-popup {
+    font-family: 'Lucida Grande', Verdana, Geneva, Lucida, Arial, Helvetica, sans-serif !important;
+    font-size: 12px;
+    position: absolute;
+    background-color: white;
+    -webkit-filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.2));
+    filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.2));
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid #cccccc;
+    bottom: 12px;
+    left: -50px;
+    min-width: 100px;
+}
+
+.ol-popup:after,
+.ol-popup:before {
+    top: 100%;
+    border: solid transparent;
+    content: " ";
+    height: 0;
+    width: 0;
+    position: absolute;
+    pointer-events: none;
+}
+
+.ol-popup:after {
+    border-top-color: white;
+    border-width: 10px;
+    left: 48px;
+    margin-left: -10px;
+}
+
+.ol-popup:before {
+    border-top-color: #cccccc;
+    border-width: 11px;
+    left: 48px;
+    margin-left: -11px;
+}
+
+.ol-popup-closer {
+    text-decoration: none;
+    position: absolute;
+    top: 2px;
+    right: 8px;
+}
+
+.ol-popup-closer:after {
+    content: "✖";
+    color: #c3c3c3;
+}

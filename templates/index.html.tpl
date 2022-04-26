@@ -22,14 +22,41 @@
 <div id="filters" class="content-box">
     <a href="#" id="filters-closer" class="content-closer"></a>
     <form id="filter-form">
-    <label for="filter-okres">Okres</label>
-    <select name="filter-okres" id="filter-okres">
-    {% for each in okresy %}
+    <div class="filter-field">
+        <label for="filter-okres">Okres</label>
+        <select name="filter-okres" id="filter-okres">
+            <option value="">-- Vše --</option>
+            {% for each in okresy %}
 
-    <option value="{{each.id}}" {% if each == "list_status" %} selected {% endif %}>{{each.name}}</option>
+            <option value="{{each.id}}" {% if each == "list_status" %} selected {% endif %}>{{each.name}}</option>
 
-    {% endfor %}
-    </select>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="filter-field">
+        <label for="filter-obec">Obec</label>
+        <select name="filter-obec" id="filter-obec">
+            <option value="">-- Vše --</option>
+            {% for each in obce %}
+
+            <option value="{{each.id}}" {% if each == "list_status" %} selected {% endif %}>{{each.name}}</option>
+
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="filter-field">
+        <label for="filter-obor">Obor</label>
+        <select name="filter-obor" id="filter-obor">
+            <option value="">-- Vše --</option>
+            {% for each in obory %}
+
+            <option value="{{each.id}}" {% if each == "list_status" %} selected {% endif %}>{{each.name}}</option>
+
+            {% endfor %}
+        </select>
+    </div>
     <button id="filters-submit">Filtrovat</button>
 </div>
 <div id="content" class="content-box">
@@ -103,12 +130,34 @@ $(function() {
         e.preventDefault();
 
         var data_filter = {
-            "okres": $('#filter-form #filter-okres').val()
+
         };
-        console.log(data_filter);
+
+        if($('#filter-form #filter-okres').val() != "") {
+            data_filter["okres"] = $('#filter-form #filter-okres').val();
+        }
+        if($('#filter-form #filter-obec').val() != "") {
+            data_filter["obec"] = $('#filter-form #filter-obec').val();
+        }
+        if($('#filter-form #filter-obor').val() != "") {
+            data_filter["obor"] = $('#filter-form #filter-obor').val();
+        }
+
         load_markers(data_filter);
 
+        load_obce(data_filter);
+
+
+
+
     });
+
+    $('#filter-form #filter-okres').on('change', function() {
+        data_filter = {"okres": $(this).val()};
+        console.log(data_filter);
+        load_obce(data_filter);
+    });
+
 
     function load_markers(data_filter) {
 
@@ -165,6 +214,31 @@ $(function() {
 
     }
 
+    function load_obce(data_filter) {
+        // reload filters
+        const xhttp = new XMLHttpRequest();
+        xhttp.onload = function() {
+
+            var json = JSON.parse(this.responseText);
+            console.log('reload filters', json['data']);
+            $('#filter-form #filter-obec').html('<option value="">-- Vše --</option>');
+
+            for(var i=1; i<json['data'].length; i++) {
+                console.log(json['data'][i]);
+                var opt = $('<option value="'+json['data'][i]['id']+'">'+json['data'][i]['name']+'</option>');
+                if(json['data'][i]['id'] == data_filter['obec']) {
+                    $(opt).attr('selected', 'selected');
+                }
+                $('#filter-form #filter-obec').append(opt);
+            }
+        }
+
+        xhttp.open("POST", "data/obce", true);
+        xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+        xhttp.send($.param(data_filter));
+
+    }
+
     function load_detail(person_id) {
 
 
@@ -181,15 +255,42 @@ $(function() {
             //*†
             var life = $('<div class="content-life-span"/>');
             $(life).append($('<span class="birth-date">'+json['data']['birthDate']+' '+json['data']['birthPlace'].replace('--', ', okres ')+'</span>'));
-            if(typeof json['data']['deathDate'] !== 'undefined') {
+            if(typeof json['data']['deathDate'] !== 'undefined' || typeof json['data']['deathPlace'] !== 'undefined') {
                 $(life).append($('<br />'));
-                $(life).append($('<span class="death-date">'+json['data']['deathDate']+' '+json['data']['deathPlace'].replace('--', ', okres ')+'</span>'));
+                var deathText = '';
+                if(typeof json['data']['deathDate'] !== 'undefined') {
+                    deathText += json['data']['deathDate'];
+                } else {
+                    deathText += '????-??-??';
+                }
+
+                if(typeof json['data']['deathPlace'] !== 'undefined') {
+                    deathText += ' '+json['data']['deathPlace'].replace('--', ', okres ');
+                } else {
+                    deathText += ' ???';
+                }
+
+                $(life).append($('<span class="death-date">'+deathText+'</span>'));
             }
-            $(content_html).append(life);
 
             var desc = $('<div class="content-description" />');
-            $(desc).append($('<p>'+json['data']['description']+'</p>'));
+            var desc_p = $('<p>'+json['data']['description']+'</p>');
+            $(desc).append(desc_p);
+
+            var image = $('<img class="content-portrait" width="150"/>');
+            if(typeof json['data']['image'] !== 'undefined') {
+                $(image).attr('src', json['data']['image']);
+            } else {
+                $(image).attr('src', 'styles/img/portret.png');
+            }
+
+            $(content_html).append(image);
+            $(content_html).append(life);
+
             $(content_html).append(desc);
+
+
+
 
 
             $(content_box).html($(content_html).html());

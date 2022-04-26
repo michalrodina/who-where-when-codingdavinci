@@ -3,6 +3,7 @@
 
 
 from SPARQLWrapper import SPARQLWrapper, JSON
+from urllib.error import HTTPError
 import json
 from collections import defaultdict
 import re
@@ -68,6 +69,63 @@ class DataSource:
 
         return ret
 
+
+    def load_okresy(self, data_filter={}):
+        self.reos.setQuery("""
+                    SELECT DISTINCT
+                        (STRAFTER(?location, '--') AS ?id)
+                        (STRAFTER(?location, '--') AS ?name)
+                    WHERE {
+                        ?s <http://schema.org/workLocation> ?location .
+                        
+                    }
+                    ORDER BY ASC(STRAFTER(?location, '--'))
+
+                """)
+
+        data = self.reos.queryAndConvert()
+
+        ret = []
+        for x in data['results']['bindings']:
+            val = x['id']['value']
+            if val in self.okresy:
+                ret.append({"id": x['id']['value'], "name": x['name']['value']})
+
+        return ret
+        pass
+
+
+    def load_obce(self, data_filter={}):
+        query = """
+                    SELECT DISTINCT
+                        (STRBEFORE(?location, '--') AS ?id)
+                        (STRBEFORE(?location, '--') AS ?name)
+                    WHERE {{
+                        ?s <http://schema.org/workLocation> ?location .
+                        {okresFilter}
+                    }}
+                    ORDER BY ASC(STRBEFORE(?location, '--'))
+
+                """
+
+
+        okres = ""
+        if "okres" in data_filter:
+            okres = "FILTER regex(?location , \"--@location\", \"i\")".replace("@location", data_filter["okres"])
+
+        queryToUse = query.format(okresFilter=okres)
+
+        self.reos.setQuery(queryToUse)
+        data = self.reos.queryAndConvert()
+
+        ret = []
+        for x in data['results']['bindings']:
+            ret.append({"id": x['id']['value'], "name": x['name']['value']})
+
+        return ret
+        pass
+
+
     # Gettery:
     ##
     # Nacist obory pusobnosi
@@ -124,8 +182,11 @@ class DataSource:
                 #FILTER regex(?name, "Jan","i")
                 {birthDate}
                 {okresFilter}
+                {obecFilter}
+                {oborFilter}
             }}
             GROUP BY ?s ?name ?location ?description ?birthPlace ?birthDate ?deathDate ?deathPlace
+            ORDER BY ASC(?name)
         """
 
         # zpracuj data_filter
@@ -133,14 +194,24 @@ class DataSource:
         print("datasource", data_filter)
 
         bday = ""
-        if "birthDay" in data_filter:
+        if "birthDay" in data_filter and data_filter['birthDay'] != "":
             bday = "FILTER (?birthDate > \"@bday\"^^xsd:date)".replace("@bday", data_filter["birthDay"])
 
         okres = ""
-        if "okres" in data_filter:
-            okres = "FILTER regex(?location , \"@location\", \"i\")".replace("@location", data_filter["okres"])
+        if "okres" in data_filter and data_filter['okres'] != "":
+            okres = "FILTER regex(?location , \"--@location\", \"i\")".replace("@location", data_filter["okres"])
 
-        queryToUse = query.format(birthDate=bday, okresFilter=okres)
+        obec = ""
+        if "obec" in data_filter and data_filter['obec'] != "":
+            obec = "FILTER regex(?location , \"@location--\", \"i\")".replace("@location", data_filter["obec"])
+
+        obor = ""
+        if "obor" in data_filter and data_filter['obor'] != "":
+            obor = "FILTER regex(?subj , \"@subject\", \"i\")".replace("@subject", data_filter["obor"])
+
+        queryToUse = query.format(birthDate=bday, okresFilter=okres, obecFilter=obec, oborFilter=obor)
+
+        print(queryToUse)
 
         self.reos.setQuery(queryToUse)
 
@@ -217,7 +288,8 @@ class DataSource:
         pass
 
     def prepareName(self, name):
-        return name
+        split = name.split(', ')
+        return split[1]+' '+split[0]
 
     ##
     # Nacist jednu osobu dle <https://svkpk.cz/resources/reos/{subject}>
@@ -251,7 +323,8 @@ class DataSource:
                 ?s <http://purl.org/dc/terms/subjects> ?subj .
                 FILTER regex(STR(?s), "%s", "i")
                 }
-            GROUP BY ?s ?name ?location ?description ?birthPlace ?birthDate ?deathDate ?deathPlace     
+            GROUP BY ?s ?name ?location ?description ?birthPlace ?birthDate ?deathDate ?deathPlace 
+            ORDER BY ASC(?name)    
         """ % subject)
 
         data = self.reos.queryAndConvert()
@@ -272,10 +345,20 @@ class DataSource:
           SERVICE wikibase:label {{ bd:serviceParam wikibase:language "cs". }}
         }}
                         """
-        usedQuery = query.format( name = self.prepareName(ret["name"].replace(',', '')), born = ret["birthDate"])
-        self.wiki.setQuery(usedQuery)
+        usedQuery = query.format( name = self.prepareName(ret["name"]), born = ret["birthDate"])
 
-        dataImage = self.wiki.queryAndConvert()
+        print('WikiData Image', usedQuery)
+        self.wiki.setQuery(usedQuery)
+        try:
+            dataImage = self.wiki.queryAndConvert()
+            print(dataImage)
+            ret["image"] = dataImage['results']['bindings'][0]['image']['value']
+        except HTTPError:
+            ret['image'] = False
+            print('WikiData HTTP Error')
+        except (IndexError, KeyError) as e:
+            print(e)
+            print('WikiData Data Error')
         #try:
         #    ret["image"] = dataImage['results']['bindings'][0]['image']['value']
 

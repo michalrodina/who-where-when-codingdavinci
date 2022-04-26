@@ -24,14 +24,16 @@ data_api = Blueprint('data_api', __name__, template_folder='./templates/')
 # Aktivace datoveho zdroje
 sparql = DataSource()
 
+data_filter = {}
 
 # Dummy JSON data
 @data_api.route('/data/markers', methods=['POST'])
 def data_markers():
-    filter = {}
+    global data_filter
+    data_filter = {}
     for key, value in request.form.items():
-        filter[key] = value
-    data = sparql.load_items(filter)
+        data_filter[key] = value
+    data = sparql.load_items(data_filter)
     df = pd.DataFrame(data)
 
     markers = []
@@ -46,11 +48,33 @@ def data_markers():
     pass
 
 
+@data_api.route('/data/okresy', methods=['GET', 'POST'])
+def data_okresy():
+    data = sparql.load_okresy()
+
+    r = Response(response=render_template('data_markers.json.tpl', data=json.dumps(data)))
+    r.headers["Content-Type"] = "application/json; charset=utf-8"
+    return r
+
+
+@data_api.route('/data/obce', methods=['GET', 'POST'])
+def data_obce():
+    global data_filter
+    for key, value in request.form.items():
+        data_filter[key] = value
+
+    data = sparql.load_obce(data_filter)
+
+    r = Response(response=render_template('data_markers.json.tpl', data=json.dumps(data)))
+    r.headers["Content-Type"] = "application/json; charset=utf-8"
+    return r
+
+
 @data_api.route('/data/subjects')
 def data_subjects():
     data = sparql.load_subjects()
 
-    r = Response(response=render_template('data_markers.json.tpl', data=json.dumps(data)))
+    r = Response(response=render_template('data.csv.tpl', data=data))
     r.headers["Content-Type"] = "application/json; charset=utf-8"
     return r
 
