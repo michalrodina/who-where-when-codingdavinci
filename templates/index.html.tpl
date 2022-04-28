@@ -172,7 +172,7 @@ $(function() {
                     var marker_data = json.data[i].data
                     //console.log(marker_data);
                     var person_rows = $('<div />');
-                    $(person_rows).append($("<h2>"+marker_data[0].location.replace('--', ', okres ')+"</h2>\n"));
+                    $(person_rows).append($("<h2>"+marker_data[0].location.replace('--', ', ')+"</h2>\n"));
 
                     for(j=0; j<marker_data.length; j++) {
                         //console.log(marker_data[j]);
@@ -254,7 +254,7 @@ $(function() {
             $(content_html).append(name);
             //*†
             var life = $('<div class="content-life-span"/>');
-            $(life).append($('<span class="birth-date">'+json['data']['birthDate']+' '+json['data']['birthPlace'].replace('--', ', okres ')+'</span>'));
+            $(life).append($('<span class="birth-date">'+json['data']['birthDate']+' '+json['data']['birthPlace'].replace('--', ', ')+'</span>'));
             if(typeof json['data']['deathDate'] !== 'undefined' || typeof json['data']['deathPlace'] !== 'undefined') {
                 $(life).append($('<br />'));
                 var deathText = '';
@@ -265,7 +265,7 @@ $(function() {
                 }
 
                 if(typeof json['data']['deathPlace'] !== 'undefined') {
-                    deathText += ' '+json['data']['deathPlace'].replace('--', ', okres ');
+                    deathText += ' '+json['data']['deathPlace'].replace('--', ', ');
                 } else {
                     deathText += ' ???';
                 }
@@ -278,7 +278,7 @@ $(function() {
             $(desc).append(desc_p);
 
             var image = $('<img class="content-portrait" width="150"/>');
-            if(typeof json['data']['image'] !== 'undefined') {
+            if(typeof json['data']['image'] !== 'undefined' && json['data']['image'] != false) {
                 $(image).attr('src', json['data']['image']);
             } else {
                 $(image).attr('src', 'styles/img/portret.png');

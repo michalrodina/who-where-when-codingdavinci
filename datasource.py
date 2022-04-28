@@ -31,11 +31,13 @@ class DataSource:
         self.wiki = SPARQLWrapper('https://query.wikidata.org/sparql')
         self.wiki.setReturnFormat(JSON)
 
+        self.geoloc = {}
         self.okresy = self.load_geoloc()
+
+        self.subjects = False
 
 
     def load_geoloc(self, city_label=""):
-        self.geoloc = {}
 
         self.wiki.setQuery("""
             SELECT DISTINCT ?locationLabel ?regionLabel ?geoloc WHERE {
@@ -132,21 +134,14 @@ class DataSource:
     #
     # TODO: Je v tom slusnej bordel :/
     def load_subjects(self):
-        self.reos.setQuery("""
-            SELECT DISTINCT ?subj
-            WHERE {
-                ?s <http://purl.org/dc/terms/subjects> ?subj . 
-            }
-        
-        """)
+        import csv
+        if not self.subjects:
+            print('Subjects not initialized')
+            with open('assets/subjects.csv', mode='r', encoding='utf-8') as infile:
+                reader = csv.reader(infile, delimiter=';')
+                self.subjects = [{"id": rows[0], "name": rows[1]} for rows in reader]
 
-        data = self.reos.queryAndConvert()
-
-        ret = []
-        for d in data['results']['bindings']:
-            ret.append(d['subj']['value'])
-
-        return ret
+        return self.subjects
 
     ##
     # Load items metoda
@@ -191,7 +186,6 @@ class DataSource:
 
         # zpracuj data_filter
         # okres: Plzeň
-        print("datasource", data_filter)
 
         bday = ""
         if "birthDay" in data_filter and data_filter['birthDay'] != "":
@@ -211,7 +205,7 @@ class DataSource:
 
         queryToUse = query.format(birthDate=bday, okresFilter=okres, obecFilter=obec, oborFilter=obor)
 
-        print(queryToUse)
+        # print(queryToUse)
 
         self.reos.setQuery(queryToUse)
 
@@ -347,18 +341,18 @@ class DataSource:
                         """
         usedQuery = query.format( name = self.prepareName(ret["name"]), born = ret["birthDate"])
 
-        print('WikiData Image', usedQuery)
         self.wiki.setQuery(usedQuery)
         try:
             dataImage = self.wiki.queryAndConvert()
-            print(dataImage)
+            # print(dataImage)
             ret["image"] = dataImage['results']['bindings'][0]['image']['value']
         except HTTPError:
             ret['image'] = False
-            print('WikiData HTTP Error')
+            # print('WikiData HTTP Error')
         except (IndexError, KeyError) as e:
-            print(e)
-            print('WikiData Data Error')
+            ret['image'] = False
+            # print(e)
+            # print('WikiData Data Error')
         #try:
         #    ret["image"] = dataImage['results']['bindings'][0]['image']['value']
 

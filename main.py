@@ -56,23 +56,25 @@ def index(config):
     vars['obce'] = sparql.load_obce(vars['default_filter'])
 
     # vars['obory'] = [{"name": "Keramika", "id": "keram"}, {"name": "Malba", "id": "malíř"}, {"name": "Sociologie", "id": "sociolo"}]
-    vars['obory'] = [
-        {"id": "astrol", "name": "Astrologie"},
-        {"id": "astron", "name": "Astronomie"},
-        {"id": "fyzi", "name": "Fyzika"},
-        {"id": "básn", "name": "Poezie"},
-        {"id": "benedikt", "name": "Benediktíni"},
-        {"id": "botan", "name": "Botanika"},
-        {"id": "budd", "name": "Buddhismus"},
-        {"id": "šlecht", "name": "Šlechta"},
-        {"id": "tane", "name": "Tanec"},
-        {"id": "techni", "name": "Technika"},
-        {"id": "těl", "name": "Tělesná výchova"},
-        {"id": "telev", "name": "Televize"},
-        {"id": "teol", "name": "Teologie"},
-        {"id": "textil", "name": "Textilní průmysl"},
+    # vars['obory'] = [
+    #     {"id": "astrol", "name": "Astrologie"},
+    #     {"id": "astron", "name": "Astronomie"},
+    #     {"id": "fyzi", "name": "Fyzika"},
+    #     {"id": "básn", "name": "Poezie"},
+    #     {"id": "benedikt", "name": "Benediktíni"},
+    #     {"id": "botan", "name": "Botanika"},
+    #     {"id": "budd", "name": "Buddhismus"},
+    #     {"id": "šlecht", "name": "Šlechta"},
+    #     {"id": "tane", "name": "Tanec"},
+    #     {"id": "techni", "name": "Technika"},
+    #     {"id": "těl", "name": "Tělesná výchova"},
+    #     {"id": "telev", "name": "Televize"},
+    #     {"id": "teol", "name": "Teologie"},
+    #     {"id": "textil", "name": "Textilní průmysl"},
+    #
+    # ]
+    vars['obory'] = sparql.load_subjects()
 
-    ]
     # vykreslit sablonu s nactenou konfiguraci (**operator vlozi obsah dictu jako promenne)
     return render_template('index.html.tpl', **vars, markers=[])
     pass
