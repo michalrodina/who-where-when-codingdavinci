@@ -20,9 +20,28 @@ html, body {
 }
 
 #header #main-logo {
+    float: left;
+    clear: none;
+
     position: relative;
     left: 10px;
     top: 5px;
+
+}
+
+#header h1 {
+    float: left;
+    clear: none;
+
+    position: relative;
+    left: 10px;
+    top: 5px;
+
+    height: 100%;
+    line-height: 73px;
+
+    margin: 0;
+    margin-left: 30px;
 
 }
 
@@ -55,7 +74,8 @@ a:hover {
     height: 80%;
     width: 50%;
     max-width: 600px;
-    overflow-y: scroll;
+    overflow-y: auto;
+    overflow-x: hidden;
 
     position: absolute;
     top: 40px;
@@ -108,13 +128,35 @@ a:hover {
 }
 
 .content-closer {
-    position: absolute;
-    left: 5px;
-    top: 5px;
+    width: 30px;
+    height: 30px;
+    background: #FF6B00;
+    line-height: 30px;
+    text-align: center;
 
-    width: 10px;
-    height: 10px;
-    background: black;
+
+    z-index: 1000;
+}
+
+.content-closer:link,
+.content-closer:active,
+.content-closer:visited {
+    color: white;
+    text-decoration: none;
+}
+
+.content-closer.open {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+
+
+}
+
+.content-closer.closed {
+    position: absolute;
+    left: 0px;
+    top: 0px;
 }
 
 #filters {

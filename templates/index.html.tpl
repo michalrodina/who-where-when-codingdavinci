@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{{site.title}} | Kdo? Kdy? Kde?</title>
+    <title>{{site.title}} | Osobnosti plzeňského kraje</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
     <script type="text/javascript" src="js/ol/ol.js"></script>
     <link type="text/css" rel="stylesheet" href="js/ol/ol.css" />
@@ -10,7 +10,7 @@
     <link type="text/css" rel="stylesheet" href="styles/main.css" />
 </head>
 <body>
-<div id="header"><a id="main-logo"><img src="styles/img/logo.png" height="85"/></a></div>
+<div id="header"><a id="main-logo"><img src="styles/img/logo.png" height="85"/></a><h1>Osobnosti plzeňského kraje</h1></div>
 <div id="map-container">
 <div id="map"></div>
     <div id="marker-popup" class="ol-popup">
@@ -20,7 +20,9 @@
 </div>
 </div>
 <div id="filters" class="content-box">
-    <a href="#" id="filters-closer" class="content-closer"></a>
+    <a href="#" id="filters-closer" class="content-closer open">&gt;</a>
+    <div class="content-wrap">
+    <h2>Výběr osobností</h2>
     <form id="filter-form">
     <div class="filter-field">
         <!-- <label for="filter-okres">Okres</label> -->
@@ -63,9 +65,10 @@
         <input type=="text" name="filter-fulltext" id="filter-fulltext" placeholder="jméno"/>
     </div>
     <button id="filters-submit">Filtrovat</button>
+    </div>
 </div>
 <div id="content" class="content-box">
-<a href="#" id="content-closer" class="content-closer"></a>
+<a href="#" id="content-closer" class="content-closer">&gt;</a>
 <div class="content-wrap">
 </div>
 </div>
@@ -73,6 +76,31 @@
 
 <script type="text/javascript">
 $(function() {
+
+    $('.content-closer').on('click', function(e) {
+        e.preventDefault();
+        var open = $(this).is('.open');
+        if(open) {
+            $(this).parent().animate({"width": "0px"}, 250);
+            $(this).siblings('.content-wrap').hide();
+            $(this).removeClass('open').addClass('closed');
+            $(this).html('&lt;');
+
+        } else {
+            $(this).parent().animate({"width": "50%"}, 250);
+            $(this).siblings('.content-wrap').show();
+            $(this).removeClass('closed').addClass('open');
+            $(this).html('&gt;');
+
+
+        }
+
+        console.log('content-closer', open);
+
+        return false;
+
+    });
+
 
     console.log('Hello!');
 
@@ -90,6 +118,10 @@ $(function() {
             zoom: {{map.zoom}},
           }),
         });
+
+    setTimeout(function() {
+        map.updateSize();
+    }, 100);
 
     var icon_style = new ol.style.Style({
       image: new ol.style.Icon(({
@@ -125,7 +157,7 @@ $(function() {
     var markers_layer = new ol.layer.Vector({
         source: markers_source,
         style: function(feature) {
-            console.log(feature);
+            // console.log(feature);
             label_style.getText().setText(feature.get('name'));
             return feature.A.style;
         }
