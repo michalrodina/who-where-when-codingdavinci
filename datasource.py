@@ -324,7 +324,7 @@ class DataSource:
                 OPTIONAL {?s <http://schema.org/deathDate> ?deathDate} .
                 OPTIONAL {?s <http://schema.org/deathPlace> ?deathPlace} .
                 ?s <http://purl.org/dc/terms/subjects> ?subj .
-                ?s mads:Source ?src .
+                OPTIONAL {?s mads:Source ?src} .
                 FILTER regex(STR(?s), "%s", "i")
                 }
             GROUP BY ?s ?name ?location ?description ?birthPlace ?birthDate ?deathDate ?deathPlace ?src
@@ -337,8 +337,7 @@ class DataSource:
         for x in data['results']['bindings']:
             for k in x.keys():
                 ret[k] = x[k]['value']
-        print(data)
-        return ret
+
         query = """
                              PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
         SELECT distinct ?item ?itemLabel ?image WHERE 

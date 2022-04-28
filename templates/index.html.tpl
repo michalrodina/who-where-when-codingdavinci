@@ -150,8 +150,47 @@ $(function() {
       })
     });
 
-    markers_source = new ol.source.Vector({
+    var markers_source = new ol.source.Vector({
         features: []
+    });
+
+    var cluster_source = new ol.source.Cluster({
+      // distance: parseInt(distanceInput.value, 10),
+      distance: 150,
+      // minDistance: parseInt(minDistanceInput.value, 10),
+      minDistance: 50,
+      source: markers_source,
+    });
+
+    var clusters = new ol.layer.Vector({
+        source: cluster_source,
+        style: function (feature) {
+
+            console.log(feature);
+            const size = feature.get('features').length;
+            let style = styleCache[size];
+            if (!style) {
+              style = new Style({
+                image: new CircleStyle({
+                  radius: 10,
+                  stroke: new Stroke({
+                    color: '#fff',
+                  }),
+                  fill: new Fill({
+                    color: '#3399CC',
+                  }),
+                }),
+                text: new Text({
+                  text: size.toString(),
+                  fill: new Fill({
+                    color: '#fff',
+                  }),
+                }),
+              });
+              styleCache[size] = style;
+            }
+            return style;
+        },
     });
 
     var markers_layer = new ol.layer.Vector({
@@ -245,9 +284,10 @@ $(function() {
             }
 
             map.addLayer(markers_layer);
+            console.log(clusters);
 
             var layerExtent = markers_source.getExtent();
-            console.log(layerExtent);
+            // console.log(layerExtent);
             if (layerExtent) {
                 map.getView().fit(layerExtent);
             }
@@ -335,8 +375,13 @@ $(function() {
 
             var sources = $('<div class="content-sources" /><h3>Zdroje</h3>');
             var sources_list = $('<ul />');
-            var src = json['data']['sources'].split(';');
-            console.log(src);
+            var src = [];
+            if(typeof json['data']['sources'] !== "undefined") {
+                src = json['data']['sources'].split(';');
+
+            }
+
+
             for(var i=0; i<src.length; i++) {
                 $(sources_list).append($('<li>'+src[i]+'</li>'));
 
