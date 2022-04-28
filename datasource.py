@@ -179,6 +179,7 @@ class DataSource:
                 {okresFilter}
                 {obecFilter}
                 {oborFilter}
+                {fulltextFilter}
             }}
             GROUP BY ?s ?name ?location ?description ?birthPlace ?birthDate ?deathDate ?deathPlace
             ORDER BY ASC(?name)
@@ -203,7 +204,11 @@ class DataSource:
         if "obor" in data_filter and data_filter['obor'] != "":
             obor = "FILTER regex(?subj , \"@subject\", \"i\")".replace("@subject", data_filter["obor"])
 
-        queryToUse = query.format(birthDate=bday, okresFilter=okres, obecFilter=obec, oborFilter=obor)
+        fulltext = ""
+        if "fulltext" in data_filter and data_filter['fulltext'] != "":
+            obor = "FILTER regex(?name , \"@subject\", \"i\")".replace("@subject", data_filter["fulltext"])
+
+        queryToUse = query.format(birthDate=bday, okresFilter=okres, obecFilter=obec, oborFilter=obor, fulltextFilter=fulltext)
 
         # print(queryToUse)
 
@@ -295,6 +300,8 @@ class DataSource:
     def load_item(self, subject):
 
         self.reos.setQuery("""
+            PREFIX schema: <http://www.w3.org/2001/XMLSchema#>
+            PREFIX mads:  <http://www.loc.gov/mads/rdf/v1#>
             SELECT
                 ?s 
                 ?name
@@ -305,6 +312,8 @@ class DataSource:
                 ?deathDate
                 ?deathPlace
                 (GROUP_CONCAT(?subj) AS ?subjects)
+                #(GROUP_CONCAT(?src; SEPARATOR=";") AS ?sources)
+                (?src AS ?sources)
             WHERE
               {
                 ?s <http://schema.org/name> ?name .
@@ -315,18 +324,21 @@ class DataSource:
                 OPTIONAL {?s <http://schema.org/deathDate> ?deathDate} .
                 OPTIONAL {?s <http://schema.org/deathPlace> ?deathPlace} .
                 ?s <http://purl.org/dc/terms/subjects> ?subj .
+                ?s mads:Source ?src .
                 FILTER regex(STR(?s), "%s", "i")
                 }
-            GROUP BY ?s ?name ?location ?description ?birthPlace ?birthDate ?deathDate ?deathPlace 
+            GROUP BY ?s ?name ?location ?description ?birthPlace ?birthDate ?deathDate ?deathPlace ?src
             ORDER BY ASC(?name)    
         """ % subject)
 
         data = self.reos.queryAndConvert()
+        print(data)
         ret = defaultdict(lambda: '?')
         for x in data['results']['bindings']:
             for k in x.keys():
                 ret[k] = x[k]['value']
-
+        print(data)
+        return ret
         query = """
                              PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
         SELECT distinct ?item ?itemLabel ?image WHERE 

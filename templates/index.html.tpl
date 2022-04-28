@@ -23,9 +23,9 @@
     <a href="#" id="filters-closer" class="content-closer"></a>
     <form id="filter-form">
     <div class="filter-field">
-        <label for="filter-okres">Okres</label>
+        <!-- <label for="filter-okres">Okres</label> -->
         <select name="filter-okres" id="filter-okres">
-            <option value="">-- Vše --</option>
+            <option value="">okres</option>
             {% for each in okresy %}
 
             <option value="{{each.id}}" {% if default_filter.okres == each.id %} selected {% endif %} >{{each.name}}</option>
@@ -35,9 +35,9 @@
     </div>
 
     <div class="filter-field">
-        <label for="filter-obec">Obec</label>
+        <!-- <label for="filter-obec">Obec</label> -->
         <select name="filter-obec" id="filter-obec">
-            <option value="">-- Vše --</option>
+            <option value="">obec</option>
             {% for each in obce %}
 
             <option value="{{each.id}}" {% if default_filter.filter == "obec" and each == default_filter.value %} selected {% endif %}>{{each.name}}</option>
@@ -47,15 +47,20 @@
     </div>
 
     <div class="filter-field">
-        <label for="filter-obor">Obor</label>
+        <!-- <label for="filter-obor">Obor</label> -->
         <select name="filter-obor" id="filter-obor">
-            <option value="">-- Vše --</option>
+            <option value="">obor</option>
             {% for each in obory %}
 
             <option value="{{each.id}}" {% if default_filter.filter == "obor" and each == default_filter.value %} selected {% endif %}>{{each.name}}</option>
 
             {% endfor %}
         </select>
+    </div>
+
+    <div class="filter-field">
+        <!-- <label for="filter-obor">Obor</label> -->
+        <input type=="text" name="filter-fulltext" id="filter-fulltext" placeholder="jméno"/>
     </div>
     <button id="filters-submit">Filtrovat</button>
 </div>
@@ -142,6 +147,9 @@ $(function() {
         if($('#filter-form #filter-obor').val() != "") {
             data_filter["obor"] = $('#filter-form #filter-obor').val();
         }
+        if($('#filter-form #filter-fulltext').val() != "") {
+            data_filter["fulltext"] = $('#filter-form #filter-fulltext').val();
+        }
 
         load_markers(data_filter);
 
@@ -154,7 +162,8 @@ $(function() {
 
     $('#filter-form #filter-okres').on('change', function() {
         data_filter = {"okres": $(this).val()};
-        console.log(data_filter);
+
+        $('#filter-form #filter-obce').attr('disabled', 'disabled');
         load_obce(data_filter);
     });
 
@@ -205,6 +214,12 @@ $(function() {
 
             map.addLayer(markers_layer);
 
+            var layerExtent = markers_source.getExtent();
+            console.log(layerExtent);
+            if (layerExtent) {
+                map.getView().fit(layerExtent);
+            }
+
         }
 
         xhttp.open("POST", "data/markers", true);
@@ -221,7 +236,7 @@ $(function() {
 
             var json = JSON.parse(this.responseText);
             console.log('reload filters', json['data']);
-            $('#filter-form #filter-obec').html('<option value="">-- Vše --</option>');
+            $('#filter-form #filter-obec').html('<option value="">obec</option>');
 
             for(var i=1; i<json['data'].length; i++) {
                 console.log(json['data'][i]);
@@ -231,6 +246,8 @@ $(function() {
                 }
                 $('#filter-form #filter-obec').append(opt);
             }
+
+            $('#filter-form #filter-obce').removeAttr('disabled');
         }
 
         xhttp.open("POST", "data/obce", true);
@@ -247,7 +264,7 @@ $(function() {
 
             var content_html = $('<div class="content-html">');
             var json = JSON.parse(this.responseText);
-            console.log('person detail', json['data']);
+
 
             var name = $('<h2 />');
             $(name).html(json['data']['name']);
@@ -273,7 +290,7 @@ $(function() {
                 $(life).append($('<span class="death-date">'+deathText+'</span>'));
             }
 
-            var desc = $('<div class="content-description" />');
+            var desc = $('<div class="content-description" /><h3>Biografie</h3>');
             var desc_p = $('<p>'+json['data']['description']+'</p>');
             $(desc).append(desc_p);
 
@@ -284,10 +301,22 @@ $(function() {
                 $(image).attr('src', 'styles/img/portret.png');
             }
 
+            var sources = $('<div class="content-sources" /><h3>Zdroje</h3>');
+            var sources_list = $('<ul />');
+            var src = json['data']['sources'].split(';');
+            console.log(src);
+            for(var i=0; i<src.length; i++) {
+                $(sources_list).append($('<li>'+src[i]+'</li>'));
+
+            }
+            $(sources).append(sources_list);
+
             $(content_html).append(image);
             $(content_html).append(life);
 
             $(content_html).append(desc);
+
+            $(content_html).append(sources);
 
 
 

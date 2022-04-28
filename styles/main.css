@@ -97,6 +97,16 @@ a:hover {
     padding-top: 1.5em;
 }
 
+.content-sources {
+    float: left;
+    clear: both;
+}
+
+.content-sources ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
 .content-closer {
     position: absolute;
     left: 5px;
@@ -110,6 +120,35 @@ a:hover {
 #filters {
     display: block;
     z-index: 999;
+}
+
+#filters .filter-field {
+    margin-bottom: 1.5em;
+}
+
+#filters .filter-field input,
+#filters .filter-field select {
+    padding: 10px 15px;
+    font-size: 1.2em;
+    width: 100%;
+
+    border: 1px solid #FF6B00;
+    border-radius: 10px;
+    box-sizing: border-box;
+}
+
+#filters button {
+    padding: 10px 15px;
+    font-size: 1.2em;
+    width: 100%;
+
+    border: 1px solid #FF6B00;
+    border-radius: 10px;
+    box-sizing: border-box;
+}
+
+#filters button:hover {
+    background: #FF6B00
 }
 
 #footer {
