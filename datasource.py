@@ -51,9 +51,11 @@ class DataSource:
 
         """)
 
+        ret = defaultdict(list)
+
         try:
             data = self.wiki.queryAndConvert()
-            ret = defaultdict(list)
+
             for g in data['results']['bindings']:
                 k = g['locationLabel']['value'] + '--' + g['regionLabel']['value'].replace('okres ', '')
                 self.geoloc[k] = g['geoloc']['value']
@@ -288,6 +290,9 @@ class DataSource:
 
     def prepareName(self, name):
         split = name.split(', ')
+        if len(split) == 1:
+            split = name.split(' ')
+
         return split[1]+' '+split[0]
 
     ##
